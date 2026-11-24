@@ -8,102 +8,255 @@
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 
   <style>
-    * {
-      box-sizing: border-box;
+    :root {
+      --bg: #0b0b0b;
+      --sheet: #141414;
+      --card: #1c1c1c;
+      --line: #2e2a1f;
+      --gold: #d4af37;
+      --gold-light: #f1d26a;
+      --gold-dark: #a8861f;
+      --text: #f5f1e6;
+      --muted: #9a9484;
     }
+
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
-      padding: 20px;
-      background: #f3f4f6;
-      color: #202124;
-      font-family: Arial, sans-serif;
+      padding: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+      -webkit-tap-highlight-color: transparent;
     }
 
     .container {
-      max-width: 520px;
+      max-width: 480px;
       margin: 0 auto;
+      min-height: 100vh;
+      padding: 18px 16px 30px;
     }
 
+    /* HEADER + LOGO SPACE */
     .header {
-      margin-bottom: 20px;
+      text-align: center;
+      margin-bottom: 14px;
+    }
+
+    .logo-box {
+      width: 72px;
+      height: 72px;
+      margin: 4px auto 12px;
+      border-radius: 50%;
+      border: 1.5px dashed var(--gold-dark);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--gold-dark);
+      font-size: 11px;
+      letter-spacing: 1px;
+      overflow: hidden;
+      background: rgba(212, 175, 55, 0.06);
+    }
+
+    .logo-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
     }
 
     .header h1 {
-      margin: 0 0 6px;
-      font-size: 25px;
+      margin: 0 0 4px;
+      font-size: 22px;
+      letter-spacing: 0.5px;
+      color: var(--gold);
     }
 
     .header p {
       margin: 0;
-      color: #666;
-      font-size: 14px;
+      color: var(--muted);
+      font-size: 13px;
     }
 
+    /* SHEET CARDS */
     .card {
-      background: white;
-      border-radius: 12px;
+      background: var(--sheet);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      padding: 22px 18px;
+      margin-bottom: 16px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .card h3 {
+      margin: 0 0 6px;
+      text-align: center;
+      font-size: 17px;
+      color: var(--text);
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+      text-align: center;
+      margin: 8px 0 0;
+    }
+
+    /* SCANNER FRAME */
+    .scan-frame {
+      position: relative;
+      width: 100%;
+      max-width: 320px;
+      aspect-ratio: 1 / 1;
+      margin: 18px auto 14px;
       padding: 18px;
-      margin-bottom: 15px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+
+    .scan-frame .corner {
+      position: absolute;
+      width: 46px;
+      height: 46px;
+      border: 4px solid var(--gold);
+      z-index: 3;
+      pointer-events: none;
+    }
+
+    .corner.tl { top: 0; left: 0; border-right: 0; border-bottom: 0; border-top-left-radius: 22px; }
+    .corner.tr { top: 0; right: 0; border-left: 0; border-bottom: 0; border-top-right-radius: 22px; }
+    .corner.bl { bottom: 0; left: 0; border-right: 0; border-top: 0; border-bottom-left-radius: 22px; }
+    .corner.br { bottom: 0; right: 0; border-left: 0; border-top: 0; border-bottom-right-radius: 22px; }
+
+    .scan-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #0e0e0e;
+    }
+
+    .qr-placeholder {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .qr-placeholder svg {
+      width: 62%;
+      height: 62%;
+      opacity: 0.9;
     }
 
     #reader {
+      position: absolute;
+      inset: 0;
       width: 100%;
+      border: 0 !important;
       overflow: hidden;
-      border-radius: 8px;
     }
 
+    #reader video {
+      width: 100% !important;
+      height: 100% !important;
+      object-fit: cover;
+    }
+
+    .scan-line {
+      display: none;
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, var(--gold-light), transparent);
+      box-shadow: 0 0 12px var(--gold);
+      z-index: 2;
+      animation: sweep 2.2s ease-in-out infinite;
+    }
+
+    .scanning .scan-line { display: block; }
+    .scanning .qr-placeholder { display: none; }
+
+    @keyframes sweep {
+      0%   { top: 4%; }
+      50%  { top: 94%; }
+      100% { top: 4%; }
+    }
+
+    /* BUTTONS */
     button {
       width: 100%;
-      padding: 13px;
+      padding: 15px;
       border: 0;
-      border-radius: 8px;
-      background: #174ea6;
-      color: white;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--gold-light), var(--gold) 55%, var(--gold-dark));
+      color: #151208;
       font-size: 15px;
-      font-weight: bold;
+      font-weight: 700;
+      letter-spacing: 0.5px;
       cursor: pointer;
       margin-top: 10px;
     }
 
+    button:active { transform: scale(0.98); }
+
     button:disabled {
-      background: #aaa;
+      background: #2a2a2a;
+      color: #6d6a60;
       cursor: not-allowed;
     }
 
     .secondary {
-      background: #5f6368;
+      background: transparent;
+      color: var(--gold);
+      border: 1px solid var(--gold-dark);
     }
 
     .save {
-      background: #188038;
+      background: linear-gradient(135deg, var(--gold-light), var(--gold) 55%, var(--gold-dark));
     }
 
-    .field {
-      margin: 13px 0;
-    }
+    /* FORM FIELDS */
+    .field { margin: 14px 0; }
 
     label {
       display: block;
-      font-size: 13px;
-      color: #666;
+      font-size: 12px;
+      color: var(--muted);
       margin-bottom: 6px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
     }
 
     input, select {
       width: 100%;
-      padding: 12px;
-      border: 1px solid #dadce0;
-      border-radius: 7px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
       font-size: 15px;
-      background: white;
+      background: var(--card);
+      color: var(--text);
+      outline: none;
     }
 
+    input::placeholder { color: #6d6a60; }
+
+    input:focus, select:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15);
+    }
+
+    select option { background: #1c1c1c; color: var(--text); }
+
+    /* MESSAGES */
     #message {
       display: none;
-      padding: 12px;
-      border-radius: 8px;
+      padding: 12px 14px;
+      border-radius: 12px;
       margin-top: 12px;
       font-size: 14px;
       line-height: 1.5;
@@ -111,37 +264,33 @@
 
     .info {
       display: block !important;
-      background: #e8f0fe;
-      color: #174ea6;
+      background: rgba(212, 175, 55, 0.1);
+      color: var(--gold-light);
+      border: 1px solid var(--gold-dark);
     }
 
     .success {
       display: block !important;
-      background: #e6f4ea;
-      color: #137333;
+      background: rgba(76, 175, 80, 0.12);
+      color: #7bd88f;
+      border: 1px solid #2f6b3a;
     }
 
     .warning {
       display: block !important;
-      background: #fef7e0;
-      color: #8a5b00;
+      background: rgba(255, 170, 0, 0.12);
+      color: #ffc24d;
+      border: 1px solid #8a5b00;
     }
 
     .error {
       display: block !important;
-      background: #fce8e6;
-      color: #c5221f;
+      background: rgba(255, 82, 82, 0.12);
+      color: #ff8a80;
+      border: 1px solid #8f2d2d;
     }
 
-    .hint {
-      color: #777;
-      font-size: 12px;
-      line-height: 1.5;
-    }
-
-    .hidden {
-      display: none;
-    }
+    .hidden { display: none; }
   </style>
 </head>
 
@@ -149,16 +298,46 @@
 
   <div class="container">
 
+    <!-- HEADER (put your logo in the circle below) -->
     <div class="header">
+      <div class="logo-box" id="logoBox">
+        <!-- To add your logo, replace "LOGO" with: <img src="logo.png" alt="Logo"> -->
+        LOGO
+      </div>
       <h1>CEMCOS QR Scanner</h1>
       <p>Student collection encoding system</p>
     </div>
 
     <!-- QR SCANNER -->
     <div class="card">
-      <h3>Scanner</h3>
+      <h3>Scan QR Code</h3>
+      <p class="hint">
+        Place the QR code on the student ID inside the frame.
+        Hold steady for quick results.
+      </p>
 
-      <div id="reader"></div>
+      <div class="scan-frame" id="scanFrame">
+        <span class="corner tl"></span>
+        <span class="corner tr"></span>
+        <span class="corner bl"></span>
+        <span class="corner br"></span>
+
+        <div class="scan-inner">
+          <div class="qr-placeholder">
+            <svg viewBox="0 0 100 100" fill="none" stroke="#d4af37" stroke-width="7" stroke-linejoin="round">
+              <rect x="8" y="8" width="30" height="30" rx="5"/>
+              <rect x="62" y="8" width="30" height="30" rx="5"/>
+              <rect x="8" y="62" width="30" height="30" rx="5"/>
+              <rect x="18" y="18" width="10" height="10" fill="#d4af37" stroke="none"/>
+              <rect x="72" y="18" width="10" height="10" fill="#d4af37" stroke="none"/>
+              <rect x="18" y="72" width="10" height="10" fill="#d4af37" stroke="none"/>
+              <path d="M52 52h12v12M80 52v12M52 80h12M80 80h12" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div id="reader"></div>
+          <div class="scan-line"></div>
+        </div>
+      </div>
 
       <button id="startButton" onclick="startScanner()">
         START SCANNER
@@ -170,10 +349,7 @@
         STOP SCANNER
       </button>
 
-      <p class="hint">
-        Allow camera access when your browser asks.
-        Point the camera at the QR code on the student ID.
-      </p>
+      <p class="hint">Allow camera access when your browser asks.</p>
     </div>
 
     <!-- STUDENT INFORMATION -->
@@ -213,7 +389,6 @@
         CLEAR
       </button>
     </div>
-
 
   </div>
 
@@ -487,6 +662,8 @@
 
         scannerRunning = true;
 
+        document.getElementById('scanFrame').classList.add('scanning');
+
         document
           .getElementById('startButton')
           .classList.add('hidden');
@@ -524,6 +701,8 @@
         }
 
       }
+
+      document.getElementById('scanFrame').classList.remove('scanning');
 
       document
         .getElementById('startButton')
