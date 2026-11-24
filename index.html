@@ -1,0 +1,180 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CEMCOS QR Scanner</title>
+
+  <script src="https://unpkg.com/html5-qrcode"></script>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 20px;
+      background: #f3f4f6;
+      color: #1f2937;
+      font-family: Arial, sans-serif;
+    }
+
+    main {
+      max-width: 500px;
+      margin: 35px auto;
+      background: white;
+      border-radius: 15px;
+      padding: 25px;
+      box-shadow: 0 3px 15px #0001;
+    }
+
+    h2 { margin-top: 0; }
+
+    #reader {
+      width: 100%;
+      margin: 20px 0;
+    }
+
+    button {
+      width: 100%;
+      border: 0;
+      border-radius: 8px;
+      padding: 14px;
+      margin-top: 10px;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    #start {
+      background: #2563eb;
+      color: white;
+    }
+
+    #cancel {
+      background: #e5e7eb;
+      color: #111827;
+    }
+
+    #status {
+      padding: 12px;
+      border-radius: 8px;
+      background: #eff6ff;
+      color: #1d4ed8;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+
+<body>
+<main>
+  <h2>CEMCOS QR Scanner</h2>
+  <p>Scan the QR code on the student's ID.</p>
+
+  <div id="status">
+    Press START CAMERA to request camera access.
+  </div>
+
+  <div id="reader"></div>
+
+  <button id="start" onclick="startCamera()">
+    START CAMERA
+  </button>
+
+  <button id="cancel" onclick="stopCamera()">
+    CANCEL
+  </button>
+</main>
+
+<script>
+  let scanner = null;
+  let running = false;
+  let processing = false;
+
+  function setStatus(message) {
+    document.getElementById('status').textContent = message;
+  }
+
+  async function startCamera() {
+    if (running || processing) return;
+
+    document.getElementById('start').disabled = true;
+
+    setStatus('Requesting camera permission...');
+
+    try {
+      scanner = new Html5Qrcode('reader');
+
+      await scanner.start(
+        { facingMode: 'environment' },
+        {
+          fps: 10,
+          qrbox: { width: 250, height: 250 }
+        },
+        async decodedText => {
+          if (processing) return;
+
+          processing = true;
+          setStatus('QR detected. Sending information...');
+
+          await stopCamera();
+
+          if (window.opener && !window.opener.closed) {
+            window.opener.postMessage({
+              type: 'CEMCOS_QR_RESULT',
+              data: decodedText
+            }, '*');
+
+            setStatus(
+              'QR successfully sent to the collection system. ' +
+              'You may close this window.'
+            );
+
+          } else {
+            setStatus(
+              'Collection system is not connected. ' +
+              'Please reopen the scanner from the collection system.'
+            );
+          }
+        }
+      );
+
+      running = true;
+      setStatus('Camera active. Position the QR code inside the frame.');
+
+    } catch (error) {
+      console.error(error);
+
+      setStatus(
+        'Camera access failed: ' + error.message +
+        '. Please allow camera permission in your browser settings.'
+      );
+
+      document.getElementById('start').disabled = false;
+    }
+  }
+
+  async function stopCamera() {
+    if (scanner && running) {
+      try {
+        await scanner.stop();
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+    running = false;
+
+    document.getElementById('start').disabled = false;
+  }
+
+  window.addEventListener('beforeunload', () => {
+    if (scanner && running) {
+      scanner.stop().catch(() => {});
+    }
+  });
+</script>
+
+</body>
+</html>
