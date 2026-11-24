@@ -61,10 +61,20 @@
       background: rgba(212, 175, 55, 0.06);
     }
 
+    .logo-box {
+      position: relative;
+    }
+
+    .logo-box .logo-text {
+      position: absolute;
+    }
+
     .logo-box img {
+      position: relative;
       width: 100%;
       height: 100%;
-      object-fit: cover;
+      object-fit: contain;
+      background: var(--bg);
     }
 
     .header h1 {
@@ -301,8 +311,9 @@
     <!-- HEADER (put your logo in the circle below) -->
     <div class="header">
       <div class="logo-box" id="logoBox">
-        <!-- To add your logo, replace "LOGO" with: <img src="logo.png" alt="Logo"> -->
-        LOGO
+        <span class="logo-text">LOGO</span>
+        <!-- Auto-loads "logo.png" from the same folder. If the file is missing, the LOGO placeholder stays. -->
+        <img src="logo.png" alt="" onerror="this.remove()">
       </div>
       <h1>CEMCOS QR Scanner</h1>
       <p>Student collection encoding system</p>
