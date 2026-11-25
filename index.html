@@ -46,10 +46,11 @@
     }
 
     .logo-box {
-      width: 72px;
-      height: 72px;
+      position: relative;
+      width: 84px;
+      height: 84px;
       margin: 4px auto 12px;
-      border-radius: 50%;
+      border-radius: 16px;
       border: 1.5px dashed var(--gold-dark);
       display: flex;
       align-items: center;
@@ -61,10 +62,6 @@
       background: rgba(212, 175, 55, 0.06);
     }
 
-    .logo-box {
-      position: relative;
-    }
-
     .logo-box .logo-text {
       position: absolute;
     }
@@ -74,7 +71,14 @@
       width: 100%;
       height: 100%;
       object-fit: contain;
-      background: var(--bg);
+      display: block;
+    }
+
+    /* once a logo loads, drop the placeholder border */
+    .logo-box.has-logo {
+      border: 0;
+      background: transparent;
+      overflow: visible;
     }
 
     .header h1 {
@@ -166,15 +170,29 @@
       position: absolute;
       inset: 0;
       width: 100%;
+      height: 100%;
       border: 0 !important;
+      padding: 0 !important;
       overflow: hidden;
+    }
+
+    #reader > div,
+    #reader__scan_region {
+      width: 100% !important;
+      height: 100% !important;
+      min-height: 0 !important;
+      padding: 0 !important;
+      border: 0 !important;
     }
 
     #reader video {
       width: 100% !important;
       height: 100% !important;
       object-fit: cover;
+      display: block;
     }
+
+    #qr-shaded-region { display: none !important; }
 
     .scan-line {
       display: none;
@@ -313,7 +331,7 @@
       <div class="logo-box" id="logoBox">
         <span class="logo-text">LOGO</span>
         <!-- Auto-loads "logo.png" from the same folder. If the file is missing, the LOGO placeholder stays. -->
-        <img src="logo.png" alt="" onerror="this.remove()">
+        <img src="logo.png" alt="" onload="this.parentNode.classList.add('has-logo');this.parentNode.querySelector('.logo-text').remove()" onerror="this.remove()">
       </div>
       <h1>CEMCOS QR Scanner</h1>
       <p>Student collection encoding system</p>
@@ -663,10 +681,7 @@
           { facingMode: 'environment' },
           {
             fps: 10,
-            qrbox: {
-              width: 250,
-              height: 250
-            }
+            aspectRatio: 1.0
           },
           onScanSuccess
         );
