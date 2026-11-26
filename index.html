@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -22,7 +23,10 @@
 
     * { box-sizing: border-box; }
 
-    html { background: var(--bg); }
+    html {
+      background: var(--bg);
+      overscroll-behavior-y: none;
+    }
 
     body {
       margin: 0;
@@ -37,10 +41,18 @@
     /* SHIFTING BACKGROUND (logo.png, logo1.png ... logo9.png) */
     .bg {
       position: fixed;
-      inset: 0;
+      top: 0;
+      left: 0;
+      width: 100%;
+      /* fixed "large viewport" height: does not change when the phone's
+         address bar hides/shows while scrolling (that was the zoom/shake) */
+      height: 100vh;
+      height: 100lvh;
       z-index: -2;
       background: var(--bg);
       overflow: hidden;
+      transform: translateZ(0);
+      pointer-events: none;
     }
 
     .bg-layer {
@@ -50,6 +62,8 @@
       background-position: center;
       opacity: 0;
       transition: opacity 1.6s ease-in-out;
+      will-change: opacity;
+      transform: translateZ(0);
     }
 
     .bg-layer.show { opacity: 1; }
@@ -919,6 +933,23 @@
     });
 
 
+
+
+    // BACKGROUND HEIGHT FALLBACK (browsers without "lvh" support):
+    // lock the height once so it never resizes while scrolling
+    (function() {
+      const supportsLvh =
+        window.CSS && CSS.supports && CSS.supports('height', '100lvh');
+
+      if (!supportsLvh) {
+        const bg = document.getElementById('bg');
+        const lockedHeight = Math.max(
+          window.innerHeight,
+          window.screen ? window.screen.height : 0
+        );
+        bg.style.height = lockedHeight + 'px';
+      }
+    })();
 
     // BACKGROUND SLIDESHOW
     // Looks for logo.png, logo1.png ... logo9.png in the same folder
